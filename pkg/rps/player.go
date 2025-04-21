@@ -96,25 +96,7 @@ func (p *generic1SymmetricPlayer) SendMove() game.Move {
 		p.isSecondMove = true
 		return move
 	}
-	return p.getFromMoveMap(p.lastMove)
-}
-
-func (p *generic1SymmetricPlayer) getFromMoveMap(lastMove [2]game.Move) game.Move {
-	shift2 := func(mod int, move2 [2]game.Move) [2]game.Move {
-		shiftedMove2 := move2
-		shiftedMove2[0] = game.Move((int(shiftedMove2[0]) + mod) % 3)
-		shiftedMove2[1] = game.Move((int(shiftedMove2[1]) + mod) % 3)
-		return shiftedMove2
-	}
-	shift1 := func(mod int, move game.Move) game.Move {
-		return game.Move((int(move) + mod) % 3)
-	}
-	for mod := 0; mod < 3; mod++ {
-		if move, ok := p.moveMap[shift2(mod, lastMove)]; ok {
-			return shift1(3-mod, move)
-		}
-	}
-	panic("unreachable")
+	return p.moveMap[p.lastMove]
 }
 
 func (p *generic1SymmetricPlayer) RecvMove(move game.Move) {
@@ -123,11 +105,21 @@ func (p *generic1SymmetricPlayer) RecvMove(move game.Move) {
 }
 
 func makeGeneric1SymmetricPlayer(moveList [3]game.Move) func() game.Player {
-	moveMap := map[[2]game.Move]game.Move{
-		{0, Paper}:    moveList[0],
-		{0, Rock}:     moveList[2],
-		{0, Scissors}: moveList[1],
+	shift := func(mod int, move game.Move) game.Move {
+		return game.Move((int(move) + mod) % 3)
 	}
+	originalMoveMap := map[[2]game.Move]game.Move{
+		{Rock, Rock}:     moveList[0],
+		{Rock, Paper}:    moveList[2],
+		{Rock, Scissors}: moveList[1],
+	}
+	moveMap := map[[2]game.Move]game.Move{}
+	for mod := 0; mod < 3; mod++ {
+		for k, v := range originalMoveMap {
+			moveMap[[2]game.Move{shift(mod, k[0]), shift(mod, k[1])}] = shift(mod, v)
+		}
+	}
+
 	return func() game.Player {
 		return &generic1SymmetricPlayer{
 			isSecondMove: false,
