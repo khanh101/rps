@@ -53,13 +53,11 @@ func main() {
 			-1: "<",
 			0:  "=",
 		}
-		if i == 0 || j == 0 {
-			fmt.Printf("%s %s %s\n", playerList[i].String(), diffMap[diff], playerList[j].String())
-		}
+		fmt.Printf("%s %s %s\n", playerList[i].String(), diffMap[diff], playerList[j].String())
 	})
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
 		j := argSorted[i]
-		fmt.Println(pointList[j], n-1, playerMakerList[j]())
+		fmt.Printf("player %s won %d out of %d times\n", playerMakerList[j]().String(), pointList[j], n-1)
 	}
 }
