@@ -15,7 +15,7 @@ type MABPlayer struct {
 }
 
 func (p *MABPlayer) String() string {
-	return fmt.Sprintf("thompson_%d_arms", len(p.armList))
+	return fmt.Sprintf("mab_%d_arms", len(p.armList))
 }
 
 func NewMABPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *MABPlayer {
