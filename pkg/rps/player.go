@@ -33,11 +33,11 @@ func (p *RandomPlayer) String() string {
 }
 
 type WannaWinOppoPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaWinOppoPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(winTo(p.LastOppoMove()))
@@ -49,11 +49,11 @@ func (p *WannaWinOppoPlayer) String() string {
 }
 
 type WannaWinSelfPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaWinSelfPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(winTo(p.LastSelfMove()))
@@ -65,11 +65,11 @@ func (p *WannaWinSelfPlayer) String() string {
 }
 
 type WannaLoseOppoPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaLoseOppoPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(loseTo(p.LastOppoMove()))
@@ -81,11 +81,11 @@ func (p *WannaLoseOppoPlayer) String() string {
 }
 
 type WannaLoseSelfPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaLoseSelfPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(loseTo(p.LastSelfMove()))
@@ -94,4 +94,25 @@ func (p *WannaLoseSelfPlayer) SendMove() game.Move {
 
 func (p *WannaLoseSelfPlayer) String() string {
 	return "wanna_lose_self_player"
+}
+
+type GenericPlayer struct {
+	game.playerTemplate
+	moveMap map[[2]game.Move]game.Move
+}
+
+func (p *GenericPlayer) SendMove() game.Move {
+	if len(p.history) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		movePair := [2]game.Move{
+			p.LastSelfMove(),
+			p.LastOppoMove(),
+		}
+		return p.WrapSendMove()
+	}
+}
+
+func (p *GenericPlayer) String() string {
+	return "generic_player"
 }

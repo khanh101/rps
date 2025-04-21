@@ -102,11 +102,11 @@ func (p *RandomPlayer) String() string {
 }
 
 type WannaWinOppoPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaWinOppoPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(winTo(p.LastOppoMove()))
@@ -118,11 +118,11 @@ func (p *WannaWinOppoPlayer) String() string {
 }
 
 type WannaWinSelfPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaWinSelfPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(winTo(p.LastSelfMove()))
@@ -134,11 +134,11 @@ func (p *WannaWinSelfPlayer) String() string {
 }
 
 type WannaLoseOppoPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaLoseOppoPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(loseTo(p.LastOppoMove()))
@@ -150,11 +150,11 @@ func (p *WannaLoseOppoPlayer) String() string {
 }
 
 type WannaLoseSelfPlayer struct {
-	game.PlayerTemplate
+	game.playerTemplate
 }
 
 func (p *WannaLoseSelfPlayer) SendMove() game.Move {
-	if len(p.History) == 0 {
+	if len(p.history) == 0 {
 		return p.WrapSendMove(randMove())
 	} else {
 		return p.WrapSendMove(loseTo(p.LastSelfMove()))
@@ -163,6 +163,27 @@ func (p *WannaLoseSelfPlayer) SendMove() game.Move {
 
 func (p *WannaLoseSelfPlayer) String() string {
 	return "wanna_lose_self_player"
+}
+
+type GenericPlayer struct {
+	game.playerTemplate
+	moveMap map[[2]game.Move]game.Move
+}
+
+func (p *GenericPlayer) SendMove() game.Move {
+	if len(p.history) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		movePair := [2]game.Move{
+			p.LastSelfMove(),
+			p.LastOppoMove(),
+		}
+		return p.WrapSendMove()
+	}
+}
+
+func (p *GenericPlayer) String() string {
+	return "generic_player"
 }
 ./pkg/game/simulation.go
 package game
@@ -229,26 +250,34 @@ type Player interface {
 	RecvMove(move Move)
 	String() string
 }
-type PlayerTemplate struct {
-	History [][2]Move
+
+func MakePlayer(name string, sendMoveFunc func(history [][2]Move) Move) Player {
+	return &playerTemplate{
+		history:      nil,
+		sendMoveFunc: sendMoveFunc,
+		name:         name,
+	}
 }
 
-func (p *PlayerTemplate) WrapSendMove(move Move) Move {
-	p.History = append(p.History, [2]Move{move, -1})
+type playerTemplate struct {
+	history      [][2]Move
+	sendMoveFunc func(history [][2]Move) Move
+	name         string
+}
+
+func (p *playerTemplate) SendMove() Move {
+	move := p.sendMoveFunc(p.history)
+	p.history = append(p.history, [2]Move{move, -1})
 	return move
 }
 
-func (p *PlayerTemplate) LastOppoMove() Move {
-	return p.History[len(p.History)-1][1]
+func (p *playerTemplate) RecvMove(move Move) {
+	selfLastMove := p.history[len(p.history)-1][0]
+	p.history[len(p.history)-1] = [2]Move{selfLastMove, move}
 }
 
-func (p *PlayerTemplate) LastSelfMove() Move {
-	return p.History[len(p.History)-1][0]
-}
-
-func (p *PlayerTemplate) RecvMove(move Move) {
-	selfLastMove := p.History[len(p.History)-1][0]
-	p.History[len(p.History)-1] = [2]Move{selfLastMove, move}
+func (p *playerTemplate) String() string {
+	return p.name
 }
 ./pkg/game/thompson.go
 package game

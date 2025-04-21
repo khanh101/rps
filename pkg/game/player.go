@@ -7,24 +7,32 @@ type Player interface {
 	RecvMove(move Move)
 	String() string
 }
-type PlayerTemplate struct {
-	History [][2]Move
+
+func MakePlayer(name string, sendMoveFunc func(history [][2]Move) Move) Player {
+	return &playerTemplate{
+		history:      nil,
+		sendMoveFunc: sendMoveFunc,
+		name:         name,
+	}
 }
 
-func (p *PlayerTemplate) WrapSendMove(move Move) Move {
-	p.History = append(p.History, [2]Move{move, -1})
+type playerTemplate struct {
+	history      [][2]Move
+	sendMoveFunc func(history [][2]Move) Move
+	name         string
+}
+
+func (p *playerTemplate) SendMove() Move {
+	move := p.sendMoveFunc(p.history)
+	p.history = append(p.history, [2]Move{move, -1})
 	return move
 }
 
-func (p *PlayerTemplate) LastOppoMove() Move {
-	return p.History[len(p.History)-1][1]
+func (p *playerTemplate) RecvMove(move Move) {
+	selfLastMove := p.history[len(p.history)-1][0]
+	p.history[len(p.history)-1] = [2]Move{selfLastMove, move}
 }
 
-func (p *PlayerTemplate) LastSelfMove() Move {
-	return p.History[len(p.History)-1][0]
-}
-
-func (p *PlayerTemplate) RecvMove(move Move) {
-	selfLastMove := p.History[len(p.History)-1][0]
-	p.History[len(p.History)-1] = [2]Move{selfLastMove, move}
+func (p *playerTemplate) String() string {
+	return p.name
 }
