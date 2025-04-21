@@ -48,6 +48,7 @@ func (p *ThompsonPlayer) SendMove() Move {
 }
 
 func (p *ThompsonPlayer) RecvMove(move Move) {
+	p.armList[p.lastPlayer].RecvMove(move)
 	ret := p.cmp(p.lastMove, move)
 	switch ret {
 	case +1:

@@ -71,6 +71,6 @@ func main() {
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
 		j := argSorted[i]
-		fmt.Println(pointList[j], playerMakerList[j]())
+		fmt.Println(pointList[j], newPlayerMakerList[j]())
 	}
 }
