@@ -31,10 +31,10 @@ func main() {
 
 	var playerMakerList = []func() game.Player{
 		mabPlayer,
+		rps.MakeRandomPlayer(),
 		rps.MakeConstantPlayer(rps.Rock),
 		rps.MakeConstantPlayer(rps.Paper),
 		rps.MakeConstantPlayer(rps.Scissors),
-		rps.MakeRandomPlayer(),
 		rps.MakeWinSelfPlayer(),
 		rps.MakeLoseSelfPlayer(),
 		rps.MakeWinOppoPlayer(),
