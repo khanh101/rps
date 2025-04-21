@@ -241,9 +241,7 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 					switch diff {
 					case +1:
 						pointVec[i]++
-						pointVec[j]--
 					case -1:
-						pointVec[i]--
 						pointVec[j]++
 					default:
 					}
