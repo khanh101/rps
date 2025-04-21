@@ -7,7 +7,7 @@ import (
 	"rps/pkg/game"
 )
 
-func MoveName(move game.Move) string {
+func GetMoveName(move game.Move) string {
 	switch move {
 	case Rock:
 		return "rock"
@@ -69,121 +69,63 @@ func winTo(move game.Move) game.Move {
 ./pkg/rps/player.go
 package rps
 
-import (
-	"rps/pkg/game"
-)
+import "rps/pkg/game"
 
-type ConstantPlayer struct {
-	ConstantMove game.Move
-}
-
-func (p *ConstantPlayer) SendMove() game.Move {
-	return p.ConstantMove
-}
-
-func (p *ConstantPlayer) RecvMove(m game.Move) {
-}
-
-func (p *ConstantPlayer) String() string {
-	return "constant_player_" + MoveName(p.ConstantMove)
-}
-
-type RandomPlayer struct{}
-
-func (p *RandomPlayer) SendMove() game.Move {
-	return randMove()
-}
-
-func (p *RandomPlayer) RecvMove(m game.Move) {
-}
-
-func (p *RandomPlayer) String() string {
-	return "random_player"
-}
-
-type WannaWinOppoPlayer struct {
-	game.playerTemplate
-}
-
-func (p *WannaWinOppoPlayer) SendMove() game.Move {
-	if len(p.history) == 0 {
-		return p.WrapSendMove(randMove())
-	} else {
-		return p.WrapSendMove(winTo(p.LastOppoMove()))
+func MakeConstantPlayer(move game.Move) func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("constant_"+GetMoveName(move), func(history [][2]game.Move) game.Move {
+			return move
+		})
 	}
 }
 
-func (p *WannaWinOppoPlayer) String() string {
-	return "wanna_win_oppo_player"
-}
-
-type WannaWinSelfPlayer struct {
-	game.playerTemplate
-}
-
-func (p *WannaWinSelfPlayer) SendMove() game.Move {
-	if len(p.history) == 0 {
-		return p.WrapSendMove(randMove())
-	} else {
-		return p.WrapSendMove(winTo(p.LastSelfMove()))
+func MakeRandomPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("random", func(history [][2]game.Move) game.Move {
+			return randMove()
+		})
 	}
 }
 
-func (p *WannaWinSelfPlayer) String() string {
-	return "wanna_win_self_player"
-}
-
-type WannaLoseOppoPlayer struct {
-	game.playerTemplate
-}
-
-func (p *WannaLoseOppoPlayer) SendMove() game.Move {
-	if len(p.history) == 0 {
-		return p.WrapSendMove(randMove())
-	} else {
-		return p.WrapSendMove(loseTo(p.LastOppoMove()))
+func MakeWinSelfPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("win_self", func(history [][2]game.Move) game.Move {
+			if len(history) < 1 {
+				return randMove()
+			}
+			return winTo(history[len(history)-1][0])
+		})
 	}
 }
-
-func (p *WannaLoseOppoPlayer) String() string {
-	return "wanna_lose_oppo_player"
-}
-
-type WannaLoseSelfPlayer struct {
-	game.playerTemplate
-}
-
-func (p *WannaLoseSelfPlayer) SendMove() game.Move {
-	if len(p.history) == 0 {
-		return p.WrapSendMove(randMove())
-	} else {
-		return p.WrapSendMove(loseTo(p.LastSelfMove()))
+func MakeLoseSelfPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("lose_self", func(history [][2]game.Move) game.Move {
+			if len(history) < 1 {
+				return randMove()
+			}
+			return loseTo(history[len(history)-1][0])
+		})
 	}
 }
-
-func (p *WannaLoseSelfPlayer) String() string {
-	return "wanna_lose_self_player"
-}
-
-type GenericPlayer struct {
-	game.playerTemplate
-	moveMap map[[2]game.Move]game.Move
-}
-
-func (p *GenericPlayer) SendMove() game.Move {
-	if len(p.history) == 0 {
-		return p.WrapSendMove(randMove())
-	} else {
-		movePair := [2]game.Move{
-			p.LastSelfMove(),
-			p.LastOppoMove(),
-		}
-		return p.WrapSendMove()
+func MakeWinOppoPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("win_oppo", func(history [][2]game.Move) game.Move {
+			if len(history) < 1 {
+				return randMove()
+			}
+			return winTo(history[len(history)-1][1])
+		})
 	}
 }
-
-func (p *GenericPlayer) String() string {
-	return "generic_player"
+func MakeLoseOppoPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakePlayer("lose_oppo", func(history [][2]game.Move) game.Move {
+			if len(history) < 1 {
+				return randMove()
+			}
+			return loseTo(history[len(history)-1][1])
+		})
+	}
 }
 ./pkg/game/simulation.go
 package game

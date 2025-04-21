@@ -5,7 +5,7 @@ import (
 	"rps/pkg/game"
 )
 
-func MoveName(move game.Move) string {
+func GetMoveName(move game.Move) string {
 	switch move {
 	case Rock:
 		return "rock"

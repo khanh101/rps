@@ -24,30 +24,14 @@ func argsort(slice []int) []int {
 
 func main() {
 	var armMakerList = []func() game.Player{
-		func() game.Player {
-			return &rps.WannaWinOppoPlayer{}
-		},
-		func() game.Player {
-			return &rps.WannaLoseOppoPlayer{}
-		},
-		func() game.Player {
-			return &rps.WannaLoseSelfPlayer{}
-		},
-		func() game.Player {
-			return &rps.WannaWinSelfPlayer{}
-		},
-		func() game.Player {
-			return &rps.ConstantPlayer{ConstantMove: rps.Rock}
-		},
-		func() game.Player {
-			return &rps.ConstantPlayer{ConstantMove: rps.Paper}
-		},
-		func() game.Player {
-			return &rps.ConstantPlayer{ConstantMove: rps.Scissors}
-		},
-		func() game.Player {
-			return &rps.RandomPlayer{}
-		},
+		rps.MakeConstantPlayer(rps.Rock),
+		rps.MakeConstantPlayer(rps.Paper),
+		rps.MakeConstantPlayer(rps.Scissors),
+		rps.MakeRandomPlayer(),
+		rps.MakeWinSelfPlayer(),
+		rps.MakeLoseSelfPlayer(),
+		rps.MakeWinOppoPlayer(),
+		rps.MakeLoseOppoPlayer(),
 	}
 	thompsonPlayer := func() game.Player {
 		return game.NewThompsonPlayer(armMakerList, rps.Cmp)
@@ -55,7 +39,7 @@ func main() {
 	playerMakerList := append(armMakerList, thompsonPlayer)
 	n := len(playerMakerList)
 
-	rounds := 10000
+	rounds := 100
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",
@@ -63,7 +47,7 @@ func main() {
 			0:  "=",
 		}
 		_ = retSMap
-		// fmt.Printf("round %d (%s %s) %s (%s %s)\n", j+1, p1.String(), rps.MoveName(m1), retSMap[ret], p2.String(), rps.MoveName(m2))
+		// fmt.Printf("round %d (%s %s) %s (%s %s)\n", j+1, p1.String(), rps.GetMoveName(m1), retSMap[ret], p2.String(), rps.GetMoveName(m2))
 	})
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
