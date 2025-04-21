@@ -22,7 +22,11 @@ func (p *ThompsonPlayer) String() string {
 	return fmt.Sprintf("thompson_player_[%s]", playerListStr)
 }
 
-func NewThompsonPlayer(armList []Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
+func NewThompsonPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
+	armList := make([]Player, len(armMakerList))
+	for i, playerMaker := range armMakerList {
+		armList[i] = playerMaker()
+	}
 	return &ThompsonPlayer{
 		armList:  armList,
 		winList:  make([]int, len(armList)),
@@ -48,7 +52,6 @@ func (p *ThompsonPlayer) SendMove() Move {
 }
 
 func (p *ThompsonPlayer) RecvMove(move Move) {
-	p.armList[p.lastPlayer].RecvMove(move)
 	ret := p.cmp(p.lastMove, move)
 	switch ret {
 	case +1:
@@ -57,6 +60,7 @@ func (p *ThompsonPlayer) RecvMove(move Move) {
 		p.loseList[p.lastPlayer]++
 	default:
 	}
+	p.armList[p.lastPlayer].RecvMove(move)
 }
 
 func randBeta(alpha float64, beta float64) float64 {

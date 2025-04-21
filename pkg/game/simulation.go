@@ -10,12 +10,9 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 
 	wg := sync.WaitGroup{}
 	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			if i == j {
-				continue
-			}
+		for j := i + 1; j < n; j++ {
 			wg.Add(1)
-			func(i int, j int) { // TODO at go
+			go func(i int, j int) { // TODO at go
 				defer wg.Done()
 				p1, p2 := playerMakerList[i](), playerMakerList[j]()
 

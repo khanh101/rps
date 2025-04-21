@@ -177,12 +177,9 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 
 	wg := sync.WaitGroup{}
 	for i := 0; i < n; i++ {
-		for j := 0; j < n; j++ {
-			if i == j {
-				continue
-			}
+		for j := i + 1; j < n; j++ {
 			wg.Add(1)
-			func(i int, j int) { // TODO at go
+			go func(i int, j int) { // TODO at go
 				defer wg.Done()
 				p1, p2 := playerMakerList[i](), playerMakerList[j]()
 
@@ -278,7 +275,11 @@ func (p *ThompsonPlayer) String() string {
 	return fmt.Sprintf("thompson_player_[%s]", playerListStr)
 }
 
-func NewThompsonPlayer(armList []Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
+func NewThompsonPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
+	armList := make([]Player, len(armMakerList))
+	for i, playerMaker := range armMakerList {
+		armList[i] = playerMaker()
+	}
 	return &ThompsonPlayer{
 		armList:  armList,
 		winList:  make([]int, len(armList)),
@@ -304,7 +305,6 @@ func (p *ThompsonPlayer) SendMove() Move {
 }
 
 func (p *ThompsonPlayer) RecvMove(move Move) {
-	p.armList[p.lastPlayer].RecvMove(move)
 	ret := p.cmp(p.lastMove, move)
 	switch ret {
 	case +1:
@@ -313,6 +313,7 @@ func (p *ThompsonPlayer) RecvMove(move Move) {
 		p.loseList[p.lastPlayer]++
 	default:
 	}
+	p.armList[p.lastPlayer].RecvMove(move)
 }
 
 func randBeta(alpha float64, beta float64) float64 {

@@ -23,7 +23,7 @@ func argsort(slice []int) []int {
 }
 
 func main() {
-	var playerMakerList = []func() game.Player{
+	var armMakerList = []func() game.Player{
 		func() game.Player {
 			return &rps.WannaWinOppoPlayer{}
 		},
@@ -49,17 +49,14 @@ func main() {
 			return &rps.RandomPlayer{}
 		},
 	}
-	armList := make([]game.Player, len(playerMakerList))
-	for i := range playerMakerList {
-		armList[i] = playerMakerList[i]()
-	}
 	thompsonPlayer := func() game.Player {
-		return game.NewThompsonPlayer(armList, rps.Cmp)
+		return game.NewThompsonPlayer(armMakerList, rps.Cmp)
 	}
-	newPlayerMakerList := append(playerMakerList, thompsonPlayer)
+	playerMakerList := append(armMakerList, thompsonPlayer)
+	n := len(playerMakerList)
 
-	rounds := 100
-	pointList := game.Simulate(newPlayerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
+	rounds := 10000
+	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",
 			-1: "<",
@@ -71,6 +68,6 @@ func main() {
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
 		j := argSorted[i]
-		fmt.Println(pointList[j], newPlayerMakerList[j]())
+		fmt.Println(pointList[j], n-1, playerMakerList[j]())
 	}
 }
