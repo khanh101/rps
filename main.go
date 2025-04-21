@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"rps/pkg/adversarial_game"
+	"rps/pkg/game"
 	"rps/pkg/rps"
 	"sort"
 )
@@ -23,21 +23,43 @@ func argsort(slice []int) []int {
 }
 
 func main() {
-	var playerList = []adversarial_game.Player{
-		&rps.WannaWinOppoPlayer{},
-		&rps.WannaLoseOppoPlayer{},
-		&rps.WannaLoseSelfPlayer{},
-		&rps.WannaWinSelfPlayer{},
-		&rps.ConstantPlayer{ConstantMove: rps.Rock},
-		&rps.ConstantPlayer{ConstantMove: rps.Paper},
-		&rps.ConstantPlayer{ConstantMove: rps.Scissors},
-		&rps.RandomPlayer{},
-		&rps.RandomHumanPlayer{},
+	var playerMakerList = []func() game.Player{
+		func() game.Player {
+			return &rps.WannaWinOppoPlayer{}
+		},
+		func() game.Player {
+			return &rps.WannaLoseOppoPlayer{}
+		},
+		func() game.Player {
+			return &rps.WannaLoseSelfPlayer{}
+		},
+		func() game.Player {
+			return &rps.WannaWinSelfPlayer{}
+		},
+		func() game.Player {
+			return &rps.ConstantPlayer{ConstantMove: rps.Rock}
+		},
+		func() game.Player {
+			return &rps.ConstantPlayer{ConstantMove: rps.Paper}
+		},
+		func() game.Player {
+			return &rps.ConstantPlayer{ConstantMove: rps.Scissors}
+		},
+		func() game.Player {
+			return &rps.RandomPlayer{}
+		},
 	}
-	thompsonPlayer := adversarial_game.NewThompsonPlayer(playerList)
-	playerList = append(playerList, thompsonPlayer)
-	rounds := 100000
-	pointList := adversarial_game.Simulate(playerList, rounds, rps.Cmp, func(j int, p1 adversarial_game.Player, m1 adversarial_game.Move, p2 adversarial_game.Player, m2 adversarial_game.Move, ret int) {
+	armList := make([]game.Player, len(playerMakerList))
+	for i := range playerMakerList {
+		armList[i] = playerMakerList[i]()
+	}
+	thompsonPlayer := func() game.Player {
+		return game.NewThompsonPlayer(armList, rps.Cmp)
+	}
+	newPlayerMakerList := append(playerMakerList, thompsonPlayer)
+
+	rounds := 100
+	pointList := game.Simulate(newPlayerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",
 			-1: "<",
@@ -49,6 +71,6 @@ func main() {
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
 		j := argSorted[i]
-		fmt.Println(pointList[j], playerList[j])
+		fmt.Println(pointList[j], playerMakerList[j]())
 	}
 }

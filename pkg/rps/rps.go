@@ -2,10 +2,10 @@ package rps
 
 import (
 	"math/rand"
-	"rps/pkg/adversarial_game"
+	"rps/pkg/game"
 )
 
-func MoveName(move adversarial_game.Move) string {
+func MoveName(move game.Move) string {
 	switch move {
 	case Rock:
 		return "rock"
@@ -19,27 +19,27 @@ func MoveName(move adversarial_game.Move) string {
 }
 
 const (
-	Rock     adversarial_game.Move = 0
-	Paper    adversarial_game.Move = 1
-	Scissors adversarial_game.Move = 2
+	Rock     game.Move = 0
+	Paper    game.Move = 1
+	Scissors game.Move = 2
 )
 
-func Cmp(move1 adversarial_game.Move, move2 adversarial_game.Move) int {
-	switch [2]adversarial_game.Move{move1, move2} {
-	case [2]adversarial_game.Move{Rock, Paper}, [2]adversarial_game.Move{Paper, Scissors}, [2]adversarial_game.Move{Scissors, Rock}:
+func Cmp(move1 game.Move, move2 game.Move) int {
+	switch [2]game.Move{move1, move2} {
+	case [2]game.Move{Rock, Paper}, [2]game.Move{Paper, Scissors}, [2]game.Move{Scissors, Rock}:
 		return -1
-	case [2]adversarial_game.Move{Paper, Rock}, [2]adversarial_game.Move{Scissors, Paper}, [2]adversarial_game.Move{Rock, Scissors}:
+	case [2]game.Move{Paper, Rock}, [2]game.Move{Scissors, Paper}, [2]game.Move{Rock, Scissors}:
 		return +1
 	default:
 		return 0
 	}
 }
 
-func randMove() adversarial_game.Move {
-	return adversarial_game.Move(rand.Intn(3))
+func randMove() game.Move {
+	return game.Move(rand.Intn(3))
 }
 
-func loseTo(move adversarial_game.Move) adversarial_game.Move {
+func loseTo(move game.Move) game.Move {
 	switch move {
 	case Rock:
 		return Scissors
@@ -48,11 +48,11 @@ func loseTo(move adversarial_game.Move) adversarial_game.Move {
 	case Scissors:
 		return Paper
 	default:
-		panic("wrong Constantadversarial_game.Move")
+		panic("wrong move")
 	}
 }
 
-func winTo(move adversarial_game.Move) adversarial_game.Move {
+func winTo(move game.Move) game.Move {
 	switch move {
 	case Rock:
 		return Paper
@@ -61,6 +61,6 @@ func winTo(move adversarial_game.Move) adversarial_game.Move {
 	case Scissors:
 		return Rock
 	default:
-		panic("wrong Constantadversarial_game.Move")
+		panic("wrong move")
 	}
 }

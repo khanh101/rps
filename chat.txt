@@ -4,10 +4,10 @@ package rps
 
 import (
 	"math/rand"
-	"rps/pkg/adversarial_game"
+	"rps/pkg/game"
 )
 
-func MoveName(move adversarial_game.Move) string {
+func MoveName(move game.Move) string {
 	switch move {
 	case Rock:
 		return "rock"
@@ -21,27 +21,27 @@ func MoveName(move adversarial_game.Move) string {
 }
 
 const (
-	Rock     adversarial_game.Move = 0
-	Paper    adversarial_game.Move = 1
-	Scissors adversarial_game.Move = 2
+	Rock     game.Move = 0
+	Paper    game.Move = 1
+	Scissors game.Move = 2
 )
 
-func Cmp(move1 adversarial_game.Move, move2 adversarial_game.Move) int {
-	switch [2]adversarial_game.Move{move1, move2} {
-	case [2]adversarial_game.Move{Rock, Paper}, [2]adversarial_game.Move{Paper, Scissors}, [2]adversarial_game.Move{Scissors, Rock}:
+func Cmp(move1 game.Move, move2 game.Move) int {
+	switch [2]game.Move{move1, move2} {
+	case [2]game.Move{Rock, Paper}, [2]game.Move{Paper, Scissors}, [2]game.Move{Scissors, Rock}:
 		return -1
-	case [2]adversarial_game.Move{Paper, Rock}, [2]adversarial_game.Move{Scissors, Paper}, [2]adversarial_game.Move{Rock, Scissors}:
+	case [2]game.Move{Paper, Rock}, [2]game.Move{Scissors, Paper}, [2]game.Move{Rock, Scissors}:
 		return +1
 	default:
 		return 0
 	}
 }
 
-func randMove() adversarial_game.Move {
-	return adversarial_game.Move(rand.Intn(3))
+func randMove() game.Move {
+	return game.Move(rand.Intn(3))
 }
 
-func loseTo(move adversarial_game.Move) adversarial_game.Move {
+func loseTo(move game.Move) game.Move {
 	switch move {
 	case Rock:
 		return Scissors
@@ -50,11 +50,11 @@ func loseTo(move adversarial_game.Move) adversarial_game.Move {
 	case Scissors:
 		return Paper
 	default:
-		panic("wrong Constantadversarial_game.Move")
+		panic("wrong move")
 	}
 }
 
-func winTo(move adversarial_game.Move) adversarial_game.Move {
+func winTo(move game.Move) game.Move {
 	switch move {
 	case Rock:
 		return Paper
@@ -63,226 +63,254 @@ func winTo(move adversarial_game.Move) adversarial_game.Move {
 	case Scissors:
 		return Rock
 	default:
-		panic("wrong Constantadversarial_game.Move")
+		panic("wrong move")
 	}
 }
 ./pkg/rps/player.go
 package rps
 
 import (
-	"math/rand"
-	"rps/pkg/adversarial_game"
+	"rps/pkg/game"
 )
 
 type ConstantPlayer struct {
-	ConstantMove adversarial_game.Move
+	ConstantMove game.Move
 }
 
-func (p *ConstantPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+func (p *ConstantPlayer) SendMove() game.Move {
 	return p.ConstantMove
+}
+
+func (p *ConstantPlayer) RecvMove(m game.Move) {
 }
 
 func (p *ConstantPlayer) String() string {
 	return "constant_player_" + MoveName(p.ConstantMove)
 }
 
-type WannaWinOppoPlayer struct{}
-
-func (p *WannaWinOppoPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
-	if len(history) == 0 {
-		return randMove()
-	}
-	return winTo(history[len(history)-1].OpponentMove)
-}
-
-func (p *WannaWinOppoPlayer) String() string {
-	return "wanna_win_oppo_player"
-}
-
-type WannaWinSelfPlayer struct{}
-
-func (p *WannaWinSelfPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
-	if len(history) == 0 {
-		return randMove()
-	}
-	return winTo(history[len(history)-1].MyMove)
-}
-
-func (p *WannaWinSelfPlayer) String() string {
-	return "wanna_win_self_player"
-}
-
-type WannaLoseOppoPlayer struct{}
-
-func (p *WannaLoseOppoPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
-	if len(history) == 0 {
-		return randMove()
-	}
-	return loseTo(history[len(history)-1].OpponentMove)
-}
-
-func (p *WannaLoseOppoPlayer) String() string {
-	return "wanna_lose_oppo_player"
-}
-
-type WannaLoseSelfPlayer struct{}
-
-func (p *WannaLoseSelfPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
-	if len(history) == 0 {
-		return randMove()
-	}
-	return loseTo(history[len(history)-1].MyMove)
-}
-
-func (p *WannaLoseSelfPlayer) String() string {
-	return "wanna_lose_self_player"
-}
-
 type RandomPlayer struct{}
 
-func (p *RandomPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+func (p *RandomPlayer) SendMove() game.Move {
 	return randMove()
+}
+
+func (p *RandomPlayer) RecvMove(m game.Move) {
 }
 
 func (p *RandomPlayer) String() string {
 	return "random_player"
 }
 
-type RandomHumanPlayer struct {
-	RepeatChance float64
+type WannaWinOppoPlayer struct {
+	game.PlayerTemplate
 }
 
-func (p *RandomHumanPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
-	if len(history) == 0 {
-		return randMove()
-	}
-	lastMove := history[len(history)-1].MyMove
-	if rand.Float64() < p.RepeatChance {
-		return lastMove
-	}
-	for {
-		move := randMove()
-		if move != lastMove {
-			return move
-		}
+func (p *WannaWinOppoPlayer) SendMove() game.Move {
+	if len(p.History) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		return p.WrapSendMove(winTo(p.LastOppoMove()))
 	}
 }
 
-func (p *RandomHumanPlayer) String() string {
-	return "random_human_player"
+func (p *WannaWinOppoPlayer) String() string {
+	return "wanna_win_oppo_player"
 }
-./pkg/adversarial_game/simulation.go
-package adversarial_game
 
-import (
-	"math/rand"
-)
+type WannaWinSelfPlayer struct {
+	game.PlayerTemplate
+}
 
-func Simulate(playerList []Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(j int, p1 Player, m1 Move, p2 Player, m2 Move, ret int)) []int {
-	pointList := make([]int, len(playerList))
+func (p *WannaWinSelfPlayer) SendMove() game.Move {
+	if len(p.History) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		return p.WrapSendMove(winTo(p.LastSelfMove()))
+	}
+}
 
-	playerHistoryMat := func(n int) [][]History {
-		playerHistoryMat := make([][]History, n)
-		for i := 0; i < n; i++ {
-			playerHistoryMat[i] = make([]History, n)
-		}
-		return playerHistoryMat
-	}(len(playerList))
+func (p *WannaWinSelfPlayer) String() string {
+	return "wanna_win_self_player"
+}
 
-	roundList := func(n int, r int) [][2]int {
-		playerPairList := [][2]int{}
-		for i := 0; i < n; i++ {
-			for j := i + 1; j < n; j++ {
-				playerPairList = append(playerPairList, [2]int{i, j})
+type WannaLoseOppoPlayer struct {
+	game.PlayerTemplate
+}
+
+func (p *WannaLoseOppoPlayer) SendMove() game.Move {
+	if len(p.History) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		return p.WrapSendMove(loseTo(p.LastOppoMove()))
+	}
+}
+
+func (p *WannaLoseOppoPlayer) String() string {
+	return "wanna_lose_oppo_player"
+}
+
+type WannaLoseSelfPlayer struct {
+	game.PlayerTemplate
+}
+
+func (p *WannaLoseSelfPlayer) SendMove() game.Move {
+	if len(p.History) == 0 {
+		return p.WrapSendMove(randMove())
+	} else {
+		return p.WrapSendMove(loseTo(p.LastSelfMove()))
+	}
+}
+
+func (p *WannaLoseSelfPlayer) String() string {
+	return "wanna_lose_self_player"
+}
+./pkg/game/simulation.go
+package game
+
+import "sync"
+
+func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(p1 Player, p2 Player, m1 Move, m2 Move, ret int)) []int {
+	n := len(playerMakerList)
+
+	pointVec := make([]int, n)
+	pointVecMu := sync.Mutex{}
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			if i == j {
+				continue
 			}
-		}
+			wg.Add(1)
+			go func(i int, j int) {
+				defer wg.Done()
+				p1, p2 := playerMakerList[i](), playerMakerList[j]()
 
-		roundList := make([][2]int, r*len(playerPairList))
-		for i := 0; i < len(roundList); i++ {
-			roundList[i] = playerPairList[i%len(playerPairList)]
-		}
+				diff := 0
+				for k := 0; k < rounds; k++ {
+					m1, m2 := p1.SendMove(), p2.SendMove()
+					p1.RecvMove(m2)
+					p2.RecvMove(m1)
 
-		rand.Shuffle(len(roundList), func(i int, j int) {
-			roundList[i], roundList[j] = roundList[j], roundList[i]
-		})
-		return roundList
-	}(len(playerList), rounds)
+					ret := cmp(m1, m2)
+					log(p1, p2, m1, m2, ret)
 
-	for j, round := range roundList {
-		i1, i2 := round[0], round[1]
-		p1, p2 := playerList[i1], playerList[i2]
-		h1, h2 := playerHistoryMat[i1][i2], playerHistoryMat[i2][i1]
+					switch ret {
+					case +1:
+						diff++
+					case -1:
+						diff--
+					default:
+					}
+				}
 
-		m1, m2 := p1.MakeMove(h1), p2.MakeMove(h2)
-		playerHistoryMat[i1][i2] = append(playerHistoryMat[i1][i2], HistoryPoint{
-			MyMove:       m1,
-			OpponentMove: m2,
-		})
-		playerHistoryMat[i2][i1] = append(playerHistoryMat[i2][i1], HistoryPoint{
-			MyMove:       m2,
-			OpponentMove: m1,
-		})
-		ret := cmp(m1, m2)
-
-		log(j+1, p1, m1, p2, m2, ret)
-		switch ret {
-		case +1:
-			pointList[i1] += 1
-			pointList[i2] -= 1
-		case -1:
-			pointList[i1] -= 1
-			pointList[i2] += 1
-		default:
+				{
+					pointVecMu.Lock()
+					defer pointVecMu.Unlock()
+					if diff > 0 {
+						pointVec[i]++
+						pointVec[j]--
+					}
+					if diff < 0 {
+						pointVec[i]--
+						pointVec[j]++
+					}
+				}
+			}(i, j)
 		}
 	}
-	return pointList
+	wg.Wait()
+	return pointVec
 }
-./pkg/adversarial_game/player.go
-package adversarial_game
+./pkg/game/player.go
+package game
 
 type Move int
 
-type HistoryPoint struct {
-	MyMove       Move
-	OpponentMove Move
-	Ret          int
-}
-
-type History = []HistoryPoint
-
 type Player interface {
-	MakeMove(history History) Move
+	SendMove() Move
+	RecvMove(move Move)
 	String() string
 }
-./pkg/adversarial_game/thompson.go
-package adversarial_game
+type PlayerTemplate struct {
+	History [][2]Move
+}
+
+func (p *PlayerTemplate) WrapSendMove(move Move) Move {
+	p.History = append(p.History, [2]Move{move, -1})
+	return move
+}
+
+func (p *PlayerTemplate) LastOppoMove() Move {
+	return p.History[len(p.History)-1][1]
+}
+
+func (p *PlayerTemplate) LastSelfMove() Move {
+	return p.History[len(p.History)-1][0]
+}
+
+func (p *PlayerTemplate) RecvMove(move Move) {
+	selfLastMove := p.History[len(p.History)-1][0]
+	p.History[len(p.History)-1] = [2]Move{selfLastMove, move}
+}
+./pkg/game/thompson.go
+package game
 
 import (
 	"fmt"
 	"gonum.org/v1/gonum/stat/distuv"
-	"math/rand"
 )
 
 type ThompsonPlayer struct {
-	playerList []Player
-	wList      []int
-	lList      []int
+	armList    []Player
+	winList    []int
+	loseList   []int
+	cmp        func(m1 Move, m2 Move) int
+	lastMove   Move
 	lastPlayer int
 }
 
 func (p *ThompsonPlayer) String() string {
 	playerListStr := ""
-	for _, player := range p.playerList {
+	for _, player := range p.armList {
 		playerListStr += player.String() + ","
 	}
 	return fmt.Sprintf("thompson_player_[%s]", playerListStr)
 }
 
-func NewThompsonPlayer(playerList []Player) *ThompsonPlayer {
+func NewThompsonPlayer(armList []Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
 	return &ThompsonPlayer{
-		playerList: playerList,
-		wList:      make([]int, len(playerList)),
-		lList:      make([]int, len(playerList)),
+		armList:  armList,
+		winList:  make([]int, len(armList)),
+		loseList: make([]int, len(armList)),
+		cmp:      cmp,
+	}
+}
+
+func (p *ThompsonPlayer) SendMove() Move {
+	// choose player
+	probList := make([]float64, len(p.armList))
+	for i := range probList {
+		prob := randBeta(float64(p.winList[i]+1), float64(p.loseList[i]+1))
+		probList[i] = prob
+	}
+
+	i := argmax(probList)
+	// use player
+	move := p.armList[i].SendMove()
+	p.lastMove = move
+	p.lastPlayer = i
+	return move
+}
+
+func (p *ThompsonPlayer) RecvMove(move Move) {
+	ret := p.cmp(p.lastMove, move)
+	switch ret {
+	case +1:
+		p.winList[p.lastPlayer]++
+	case -1:
+		p.loseList[p.lastPlayer]++
+	default:
 	}
 }
 
@@ -293,63 +321,18 @@ func randBeta(alpha float64, beta float64) float64 {
 	}.Rand()
 }
 
-// randDiscrete samples from a discrete distribution given by weights.
+// argmax samples from a discrete distribution given by weights.
 // It returns the selected weight.
-func randDiscrete(weights []float64) int {
+func argmax(weights []float64) int {
 	if len(weights) == 0 {
-		panic("weights must not be empty")
+		panic("weights is empty")
 	}
-
-	// Compute the total weight
-	total := 0.0
-	for _, w := range weights {
-		if w < 0 {
-			panic("weights must be non-negative")
-		}
-		total += w
-	}
-
-	if total == 0 {
-		panic("sum of weights must be greater than zero")
-	}
-
-	// Generate a random number in [0, total)
-	r := rand.Float64() * total
-
-	// Find the corresponding weight
-	cumulative := 0.0
-	for i, w := range weights {
-		cumulative += w
-		if r < cumulative {
-			return i
+	i := 0
+	for j := 1; j < len(weights); j++ {
+		if weights[j] > weights[i] {
+			i = j
 		}
 	}
-
-	// Fallback due to floating point precision issues
-	return len(weights) - 1
-}
-
-func (p *ThompsonPlayer) MakeMove(history History) Move {
-	if len(history) != 0 {
-		// update history
-		ret := history[len(history)-1].Ret
-		switch ret {
-		case +1:
-			p.wList[p.lastPlayer] += 1
-		case -1:
-			p.lList[p.lastPlayer] += 1
-		default:
-
-		}
-	}
-	probList := make([]float64, len(p.playerList))
-	for i := range probList {
-		prob := randBeta(float64(p.wList[i]+1), float64(p.lList[i]+1))
-		probList[i] = prob
-	}
-
-	i := randDiscrete(probList)
-	p.lastPlayer = i
-	return p.playerList[p.lastPlayer].MakeMove(history)
+	return i
 }
 do you have any comment on this?
