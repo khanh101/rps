@@ -127,6 +127,28 @@ func MakeLoseOppoPlayer() func() game.Player {
 		})
 	}
 }
+
+func MakeGeneric1Player(moveList [9]game.Move) func() game.Player {
+	moveMap := map[[2]game.Move]game.Move{
+		{Rock, Paper}:        moveList[0],
+		{Paper, Scissors}:    moveList[1],
+		{Scissors, Rock}:     moveList[2],
+		{Rock, Rock}:         moveList[3],
+		{Paper, Paper}:       moveList[4],
+		{Scissors, Scissors}: moveList[5],
+		{Paper, Rock}:        moveList[6],
+		{Scissors, Paper}:    moveList[7],
+		{Rock, Scissors}:     moveList[8],
+	}
+	return func() game.Player {
+		return game.MakePlayer("generic1", func(history [][2]game.Move) game.Move {
+			if len(history) < 2 {
+				return randMove()
+			}
+			return moveMap[history[len(history)-1]]
+		})
+	}
+}
 ./pkg/game/simulation.go
 package game
 
