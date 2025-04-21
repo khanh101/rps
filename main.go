@@ -41,6 +41,7 @@ func main() {
 		rps.MakeWinOppoPlayer(),
 		rps.MakeLoseOppoPlayer(),
 	}
+	playerMakerList = append(playerMakerList, rps.AllFancyPlayers()...)
 	n := len(playerMakerList)
 	playerList := make([]game.Player, n)
 	for i := 0; i < n; i++ {

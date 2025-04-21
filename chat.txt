@@ -381,7 +381,6 @@ package game
 import (
 	"fmt"
 	"gonum.org/v1/gonum/stat/distuv"
-	"math/rand"
 )
 
 type MABPlayer struct {
@@ -413,9 +412,6 @@ func NewMABPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) 
 func (p *MABPlayer) SendMove() Move {
 	// choose player
 	i := func() int {
-		if rand.Float64() < 0.0 {
-			return rand.Intn(len(p.armList))
-		}
 		probList := make([]float64, len(p.armList))
 		for i := range probList {
 			prob := randBeta(float64(p.winList[i]+1), float64(p.loseList[i]+1))
