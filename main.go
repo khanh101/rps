@@ -46,7 +46,7 @@ func main() {
 		playerList[i] = playerMakerList[i]()
 	}
 
-	rounds := 1000000
+	rounds := 100
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(i int, j int, diff int) {
 		diffMap := map[int]string{
 			+1: ">",
