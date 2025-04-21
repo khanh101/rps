@@ -25,12 +25,12 @@ func argsort(slice []int) []int {
 func main() {
 
 	armList := rps.AllGeneric1Player()
-	thompsonPlayerMaker := func() game.Player {
+	mabPlayer := func() game.Player {
 		return game.NewMABPlayer(armList, rps.Cmp)
 	}
 
 	var playerMakerList = []func() game.Player{
-		thompsonPlayerMaker,
+		mabPlayer,
 		rps.MakeConstantPlayer(rps.Rock),
 		rps.MakeConstantPlayer(rps.Paper),
 		rps.MakeConstantPlayer(rps.Scissors),
