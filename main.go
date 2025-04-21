@@ -46,7 +46,7 @@ func main() {
 		playerList[i] = playerMakerList[i]()
 	}
 
-	rounds := 100
+	rounds := 1000
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(i int, j int, diff int) {
 		diffMap := map[int]string{
 			+1: ">",
@@ -58,6 +58,6 @@ func main() {
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {
 		j := argSorted[i]
-		fmt.Printf("player %s won %d out of %d times\n", playerMakerList[j]().String(), pointList[j], n-1)
+		fmt.Printf("player %s won %d out of %d times\n", playerMakerList[j]().String(), pointList[j], rounds*(n-1))
 	}
 }
