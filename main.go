@@ -23,8 +23,9 @@ func argsort(slice []int) []int {
 }
 
 func main() {
-
-	armList := rps.AllGeneric1Player()
+	var armList []func() game.Player
+	armList = append(armList, rps.AllGeneric1Player()...)
+	armList = append(armList, rps.AllFancyPlayers()...)
 	mabPlayer := func() game.Player {
 		return game.NewMABPlayer(armList, rps.Cmp)
 	}
@@ -46,14 +47,17 @@ func main() {
 		playerList[i] = playerMakerList[i]()
 	}
 
-	rounds := 100
+	rounds := 200
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(i int, j int, diff int) {
 		diffMap := map[int]string{
 			+1: ">",
 			-1: "<",
 			0:  "=",
 		}
-		fmt.Printf("%s %s %s\n", playerList[i].String(), diffMap[diff], playerList[j].String())
+		_ = diffMap
+		if i == 0 || j == 0 {
+			fmt.Printf("%s %s %s\n", playerList[i].String(), diffMap[diff], playerList[j].String())
+		}
 	})
 	argSorted := argsort(pointList)
 	for i := len(argSorted) - 1; i >= 0; i-- {

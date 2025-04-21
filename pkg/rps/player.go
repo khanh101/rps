@@ -1,6 +1,9 @@
 package rps
 
-import "rps/pkg/game"
+import (
+	"math/rand"
+	"rps/pkg/game"
+)
 
 func MakeConstantPlayer(move game.Move) func() game.Player {
 	return func() game.Player {
@@ -126,5 +129,73 @@ func makeGeneric1SymmetricPlayer(moveList [3]game.Move) func() game.Player {
 			lastMove:     [2]game.Move{},
 			moveMap:      moveMap,
 		}
+	}
+}
+
+func MakeMirrorPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakeLongPlayer("mirror", func(history [][2]game.Move) game.Move {
+			if len(history) == 0 {
+				return randMove()
+			}
+			return history[len(history)-1][1]
+		})
+	}
+}
+func MakeCyclePlayer() func() game.Player {
+	return func() game.Player {
+		last := rand.Intn(3)
+		return game.MakeLongPlayer("cycle", func(history [][2]game.Move) game.Move {
+			last = (last + 1) % 3
+			return game.Move(last)
+		})
+	}
+}
+func MakeAntiMirrorPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakeLongPlayer("anti_mirror", func(history [][2]game.Move) game.Move {
+			if len(history) == 0 {
+				return randMove()
+			}
+			lastMove := history[len(history)-1][0]
+			return winTo(lastMove) // Beat what mirror would do
+		})
+	}
+}
+func MakeBiasRockPlayer() func() game.Player {
+	return func() game.Player {
+		return game.MakeLongPlayer("bias_rock", func(history [][2]game.Move) game.Move {
+			r := rand.Float64()
+			switch {
+			case r < 0.7:
+				return Rock
+			case r < 0.85:
+				return Paper
+			default:
+				return Scissors
+			}
+		})
+	}
+}
+func MakeReactiveSwitchPlayer() func() game.Player {
+	return func() game.Player {
+		var lastMove game.Move
+		var lastResult int = 0 // 0 = unknown/tie, 1 = win, -1 = lose
+
+		return game.MakeLongPlayer("reactive_switch", func(history [][2]game.Move) game.Move {
+			if len(history) == 0 || lastResult <= 0 {
+				lastMove = randMove()
+			}
+			return lastMove
+		})
+	}
+}
+func AllFancyPlayers() []func() game.Player {
+	return []func() game.Player{
+		MakeMirrorPlayer(),
+		MakeCyclePlayer(),
+		MakeAntiMirrorPlayer(),
+		MakeBiasRockPlayer(),
+		MakeReactiveSwitchPlayer(),
 	}
 }
