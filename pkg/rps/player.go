@@ -17,30 +17,56 @@ func (p *ConstantPlayer) String() string {
 	return "constant_player_" + MoveName(p.ConstantMove)
 }
 
-type WannaWinPlayer struct{}
+type WannaWinOppoPlayer struct{}
 
-func (p *WannaWinPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+func (p *WannaWinOppoPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
 	if len(history) == 0 {
 		return randMove()
 	}
 	return winTo(history[len(history)-1].OpponentMove)
 }
 
-func (p *WannaWinPlayer) String() string {
-	return "wanna_win_player"
+func (p *WannaWinOppoPlayer) String() string {
+	return "wanna_win_oppo_player"
 }
 
-type WannaLosePlayer struct{}
+type WannaWinSelfPlayer struct{}
 
-func (p *WannaLosePlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+func (p *WannaWinSelfPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+	if len(history) == 0 {
+		return randMove()
+	}
+	return winTo(history[len(history)-1].MyMove)
+}
+
+func (p *WannaWinSelfPlayer) String() string {
+	return "wanna_win_self_player"
+}
+
+type WannaLoseOppoPlayer struct{}
+
+func (p *WannaLoseOppoPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
 	if len(history) == 0 {
 		return randMove()
 	}
 	return loseTo(history[len(history)-1].OpponentMove)
 }
 
-func (p *WannaLosePlayer) String() string {
-	return "wanna_lose_player"
+func (p *WannaLoseOppoPlayer) String() string {
+	return "wanna_lose_oppo_player"
+}
+
+type WannaLoseSelfPlayer struct{}
+
+func (p *WannaLoseSelfPlayer) MakeMove(history adversarial_game.History) adversarial_game.Move {
+	if len(history) == 0 {
+		return randMove()
+	}
+	return loseTo(history[len(history)-1].MyMove)
+}
+
+func (p *WannaLoseSelfPlayer) String() string {
+	return "wanna_lose_self_player"
 }
 
 type RandomPlayer struct{}

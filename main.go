@@ -24,15 +24,19 @@ func argsort(slice []int) []int {
 
 func main() {
 	var playerList = []adversarial_game.Player{
-		&rps.WannaWinPlayer{},
-		&rps.WannaLosePlayer{},
+		&rps.WannaWinOppoPlayer{},
+		&rps.WannaLoseOppoPlayer{},
+		&rps.WannaLoseSelfPlayer{},
+		&rps.WannaWinSelfPlayer{},
 		&rps.ConstantPlayer{ConstantMove: rps.Rock},
 		&rps.ConstantPlayer{ConstantMove: rps.Paper},
 		&rps.ConstantPlayer{ConstantMove: rps.Scissors},
 		&rps.RandomPlayer{},
 		&rps.RandomHumanPlayer{},
 	}
-	rounds := 10000
+	thompsonPlayer := adversarial_game.NewThompsonPlayer(playerList)
+	playerList = append(playerList, thompsonPlayer)
+	rounds := 100000
 	pointList := adversarial_game.Simulate(playerList, rounds, rps.Cmp, func(j int, p1 adversarial_game.Player, m1 adversarial_game.Move, p2 adversarial_game.Player, m2 adversarial_game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",

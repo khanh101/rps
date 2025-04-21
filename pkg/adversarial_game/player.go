@@ -5,6 +5,7 @@ type Move int
 type HistoryPoint struct {
 	MyMove       Move
 	OpponentMove Move
+	Ret          int
 }
 
 type History = []HistoryPoint
