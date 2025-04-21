@@ -129,59 +129,76 @@ func MakeLoseOppoPlayer() func() game.Player {
 }
 
 func AllGeneric1Player() []func() game.Player {
-	// a_0 + a_1 3 + a_2 3^2 + ... + a_8 3^8 in [0, 3^9)
+	// n = a_0 + a_1 3 + a_2 3^2
 	var playerMakerList []func() game.Player
-	for i := 0; i < 19683; i++ {
-		moveList := [9]game.Move{}
-		n := i
-		for j := 0; j < 9; j++ {
-			moveList[j] = game.Move(n % 3)
-			n /= 3
-		}
-		playerMakerList = append(playerMakerList, makeGeneric1Player(moveList))
+	for i := 0; i < 9; i++ {
+		moveList := func(n int) [3]game.Move {
+			moveList := [3]game.Move{}
+			j := 0
+			for n > 0 {
+				moveList[j] = game.Move(n % 3)
+				n /= 3
+				j++
+			}
+			return moveList
+		}(i)
+
+		playerMakerList = append(playerMakerList, makeGeneric1SymmetricPlayer(moveList))
 	}
 	return playerMakerList
 }
 
-type generic1Player struct {
+type generic1SymmetricPlayer struct {
 	isSecondMove bool
 	lastMove     [2]game.Move
 	moveMap      map[[2]game.Move]game.Move
 }
 
-func (p *generic1Player) String() string {
+func (p *generic1SymmetricPlayer) String() string {
 	return "generic"
 }
 
-func (p *generic1Player) SendMove() game.Move {
+func (p *generic1SymmetricPlayer) SendMove() game.Move {
 	if !p.isSecondMove {
 		move := randMove()
 		p.lastMove = [2]game.Move{move, -1}
 		p.isSecondMove = true
 		return move
 	}
-	return p.moveMap[p.lastMove]
+	return p.getFromMoveMap(p.lastMove)
 }
 
-func (p *generic1Player) RecvMove(move game.Move) {
+func (p *generic1SymmetricPlayer) getFromMoveMap(lastMove [2]game.Move) game.Move {
+	shift2 := func(mod int, move2 [2]game.Move) [2]game.Move {
+		shiftedMove2 := move2
+		shiftedMove2[0] = game.Move((int(shiftedMove2[0]) + mod) % 3)
+		shiftedMove2[1] = game.Move((int(shiftedMove2[1]) + mod) % 3)
+		return shiftedMove2
+	}
+	shift1 := func(mod int, move game.Move) game.Move {
+		return game.Move((int(move) + mod) % 3)
+	}
+	for mod := 0; mod < 3; mod++ {
+		if move, ok := p.moveMap[shift2(mod, lastMove)]; ok {
+			return shift1(3-mod, move)
+		}
+	}
+	panic("unreachable")
+}
+
+func (p *generic1SymmetricPlayer) RecvMove(move game.Move) {
 	selfLastMove := p.lastMove[0]
 	p.lastMove = [2]game.Move{selfLastMove, move}
 }
 
-func makeGeneric1Player(moveList [9]game.Move) func() game.Player {
+func makeGeneric1SymmetricPlayer(moveList [3]game.Move) func() game.Player {
 	moveMap := map[[2]game.Move]game.Move{
-		{Rock, Paper}:        moveList[0],
-		{Paper, Scissors}:    moveList[1],
-		{Scissors, Rock}:     moveList[2],
-		{Rock, Rock}:         moveList[3],
-		{Paper, Paper}:       moveList[4],
-		{Scissors, Scissors}: moveList[5],
-		{Paper, Rock}:        moveList[6],
-		{Scissors, Paper}:    moveList[7],
-		{Rock, Scissors}:     moveList[8],
+		{0, Paper}:    moveList[0],
+		{0, Rock}:     moveList[2],
+		{0, Scissors}: moveList[1],
 	}
 	return func() game.Player {
-		return &generic1Player{
+		return &generic1SymmetricPlayer{
 			isSecondMove: false,
 			lastMove:     [2]game.Move{},
 			moveMap:      moveMap,
@@ -193,7 +210,7 @@ package game
 
 import "sync"
 
-func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(p1 Player, p2 Player, m1 Move, m2 Move, ret int)) []int {
+func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(i int, j int, diff int)) []int {
 	n := len(playerMakerList)
 
 	pointVec := make([]int, n)
@@ -214,7 +231,6 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 					p2.RecvMove(m1)
 
 					ret := cmp(m1, m2)
-					log(p1, p2, m1, m2, ret)
 
 					switch ret {
 					case +1:
@@ -224,17 +240,20 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 					default:
 					}
 				}
+				diff = sign(diff)
 
 				{
 					pointVecMu.Lock()
 					defer pointVecMu.Unlock()
-					if diff > 0 {
+					log(i, j, diff)
+					switch diff {
+					case +1:
 						pointVec[i]++
 						pointVec[j]--
-					}
-					if diff < 0 {
+					case -1:
 						pointVec[i]--
 						pointVec[j]++
+					default:
 					}
 				}
 			}(i, j)
@@ -242,6 +261,16 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 	}
 	wg.Wait()
 	return pointVec
+}
+
+func sign(x int) int {
+	if x < 0 {
+		return -1
+	}
+	if x == 0 {
+		return 0
+	}
+	return 1
 }
 ./pkg/game/player.go
 package game

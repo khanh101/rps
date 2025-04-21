@@ -30,26 +30,31 @@ func main() {
 	}
 
 	var playerMakerList = []func() game.Player{
-		//rps.MakeConstantPlayer(rps.Rock),
-		//rps.MakeConstantPlayer(rps.Paper),
-		//rps.MakeConstantPlayer(rps.Scissors),
-		//rps.MakeRandomPlayer(),
-		//rps.MakeWinSelfPlayer(),
-		//rps.MakeLoseSelfPlayer(),
+		rps.MakeConstantPlayer(rps.Rock),
+		rps.MakeConstantPlayer(rps.Paper),
+		rps.MakeConstantPlayer(rps.Scissors),
+		rps.MakeRandomPlayer(),
+		rps.MakeWinSelfPlayer(),
+		rps.MakeLoseSelfPlayer(),
 		rps.MakeWinOppoPlayer(),
 		rps.MakeLoseOppoPlayer(),
 		thompsonPlayerMaker,
 	}
 	n := len(playerMakerList)
+	playerList := make([]game.Player, n)
+	for i := 0; i < n; i++ {
+		playerList[i] = playerMakerList[i]()
+	}
 
-	rounds := 10000
-	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
-		retSMap := map[int]string{
+	rounds := 100000
+	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(i int, j int, diff int) {
+		diffMap := map[int]string{
 			+1: ">",
 			-1: "<",
 			0:  "=",
 		}
-		_ = retSMap
+		fmt.Printf("%s %s %s\n", playerList[i].String(), diffMap[diff], playerList[j].String())
+		_ = diffMap
 		// fmt.Printf("round %d (%s %s) %s (%s %s)\n", j+1, p1.String(), rps.GetMoveName(m1), retSMap[ret], p2.String(), rps.GetMoveName(m2))
 	})
 	argSorted := argsort(pointList)

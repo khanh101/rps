@@ -2,7 +2,7 @@ package game
 
 import "sync"
 
-func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(p1 Player, p2 Player, m1 Move, m2 Move, ret int)) []int {
+func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 Move) int, log func(i int, j int, diff int)) []int {
 	n := len(playerMakerList)
 
 	pointVec := make([]int, n)
@@ -23,7 +23,6 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 					p2.RecvMove(m1)
 
 					ret := cmp(m1, m2)
-					log(p1, p2, m1, m2, ret)
 
 					switch ret {
 					case +1:
@@ -33,17 +32,20 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 					default:
 					}
 				}
+				diff = sign(diff)
 
 				{
 					pointVecMu.Lock()
 					defer pointVecMu.Unlock()
-					if diff > 0 {
+					log(i, j, diff)
+					switch diff {
+					case +1:
 						pointVec[i]++
 						pointVec[j]--
-					}
-					if diff < 0 {
+					case -1:
 						pointVec[i]--
 						pointVec[j]++
+					default:
 					}
 				}
 			}(i, j)
@@ -51,4 +53,14 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 	}
 	wg.Wait()
 	return pointVec
+}
+
+func sign(x int) int {
+	if x < 0 {
+		return -1
+	}
+	if x == 0 {
+		return 0
+	}
+	return 1
 }
