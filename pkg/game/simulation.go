@@ -12,7 +12,7 @@ func Simulate(playerMakerList []func() Player, rounds int, cmp func(m1 Move, m2 
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
 			wg.Add(1)
-			go func(i int, j int) { // TODO at go
+			go func(i int, j int) {
 				defer wg.Done()
 				p1, p2 := playerMakerList[i](), playerMakerList[j]()
 

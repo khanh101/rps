@@ -39,7 +39,7 @@ func main() {
 	playerMakerList := append(armMakerList, thompsonPlayer)
 	n := len(playerMakerList)
 
-	rounds := 100
+	rounds := 100000
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",
