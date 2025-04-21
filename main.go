@@ -26,7 +26,7 @@ func main() {
 
 	armList := rps.AllGeneric1Player()
 	thompsonPlayerMaker := func() game.Player {
-		return game.NewThompsonPlayer(armList, rps.Cmp)
+		return game.NewMABPlayer(armList, rps.Cmp)
 	}
 
 	var playerMakerList = []func() game.Player{
@@ -42,7 +42,7 @@ func main() {
 	}
 	n := len(playerMakerList)
 
-	rounds := 100000
+	rounds := 10000
 	pointList := game.Simulate(playerMakerList, rounds, rps.Cmp, func(p1 game.Player, p2 game.Player, m1 game.Move, m2 game.Move, ret int) {
 		retSMap := map[int]string{
 			+1: ">",

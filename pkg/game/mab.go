@@ -5,7 +5,7 @@ import (
 	"gonum.org/v1/gonum/stat/distuv"
 )
 
-type ThompsonPlayer struct {
+type MABPlayer struct {
 	armList    []Player
 	winList    []int
 	loseList   []int
@@ -14,16 +14,16 @@ type ThompsonPlayer struct {
 	lastPlayer int
 }
 
-func (p *ThompsonPlayer) String() string {
+func (p *MABPlayer) String() string {
 	return fmt.Sprintf("thompson_%d_arms", len(p.armList))
 }
 
-func NewThompsonPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
+func NewMABPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *MABPlayer {
 	armList := make([]Player, len(armMakerList))
 	for i, playerMaker := range armMakerList {
 		armList[i] = playerMaker()
 	}
-	return &ThompsonPlayer{
+	return &MABPlayer{
 		armList:  armList,
 		winList:  make([]int, len(armList)),
 		loseList: make([]int, len(armList)),
@@ -31,7 +31,7 @@ func NewThompsonPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) 
 	}
 }
 
-func (p *ThompsonPlayer) SendMove() Move {
+func (p *MABPlayer) SendMove() Move {
 	// choose player
 	probList := make([]float64, len(p.armList))
 	for i := range probList {
@@ -47,7 +47,7 @@ func (p *ThompsonPlayer) SendMove() Move {
 	return move
 }
 
-func (p *ThompsonPlayer) RecvMove(move Move) {
+func (p *MABPlayer) RecvMove(move Move) {
 	ret := p.cmp(p.lastMove, move)
 	switch ret {
 	case +1:
