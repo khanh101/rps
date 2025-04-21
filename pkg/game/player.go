@@ -8,7 +8,7 @@ type Player interface {
 	String() string
 }
 
-func MakePlayer(name string, sendMoveFunc func(history [][2]Move) Move) Player {
+func MakeLongPlayer(name string, sendMoveFunc func(history [][2]Move) Move) Player {
 	return &playerTemplate{
 		history:      nil,
 		sendMoveFunc: sendMoveFunc,

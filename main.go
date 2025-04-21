@@ -23,20 +23,23 @@ func argsort(slice []int) []int {
 }
 
 func main() {
-	var armMakerList = []func() game.Player{
-		rps.MakeConstantPlayer(rps.Rock),
-		rps.MakeConstantPlayer(rps.Paper),
-		rps.MakeConstantPlayer(rps.Scissors),
-		rps.MakeRandomPlayer(),
-		rps.MakeWinSelfPlayer(),
-		rps.MakeLoseSelfPlayer(),
+
+	armList := rps.AllGeneric1Player()
+	thompsonPlayerMaker := func() game.Player {
+		return game.NewThompsonPlayer(armList, rps.Cmp)
+	}
+
+	var playerMakerList = []func() game.Player{
+		//rps.MakeConstantPlayer(rps.Rock),
+		//rps.MakeConstantPlayer(rps.Paper),
+		//rps.MakeConstantPlayer(rps.Scissors),
+		//rps.MakeRandomPlayer(),
+		//rps.MakeWinSelfPlayer(),
+		//rps.MakeLoseSelfPlayer(),
 		rps.MakeWinOppoPlayer(),
 		rps.MakeLoseOppoPlayer(),
+		thompsonPlayerMaker,
 	}
-	thompsonPlayer := func() game.Player {
-		return game.NewThompsonPlayer(armMakerList, rps.Cmp)
-	}
-	playerMakerList := append(armMakerList, thompsonPlayer)
 	n := len(playerMakerList)
 
 	rounds := 100000

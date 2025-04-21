@@ -15,11 +15,7 @@ type ThompsonPlayer struct {
 }
 
 func (p *ThompsonPlayer) String() string {
-	playerListStr := ""
-	for _, player := range p.armList {
-		playerListStr += player.String() + ","
-	}
-	return fmt.Sprintf("thompson_player_[%s]", playerListStr)
+	return fmt.Sprintf("thompson_%d_arms", len(p.armList))
 }
 
 func NewThompsonPlayer(armMakerList []func() Player, cmp func(m1 Move, m2 Move) int) *ThompsonPlayer {
